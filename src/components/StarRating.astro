@@ -3,16 +3,23 @@ import { clampRating, formatStarRating } from '../lib/ratings';
 
 interface Props {
     rating: number | null;
+    showEmpty?: boolean;
 }
 
-const { rating } = Astro.props;
+const { rating, showEmpty = false } = Astro.props;
 ---
 
-{rating !== null && (
+{(rating !== null || showEmpty) && (
     <div class="flex items-center">
         <span class="bg-blue-500/20 text-blue-400 text-sm px-3 py-1 rounded-full" data-testid="game-rating">
-            <span class="text-yellow-400">{formatStarRating(rating)}</span>
-            {clampRating(rating).toFixed(1)}
+            {rating === null ? (
+                'No rating yet'
+            ) : (
+                <>
+                    <span class="text-yellow-400">{formatStarRating(rating)}</span>
+                    {clampRating(rating).toFixed(1)}
+                </>
+            )}
         </span>
     </div>
 )}
