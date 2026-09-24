@@ -14,6 +14,14 @@ This is a crowdfunding platform for games with a developer theme. The applicatio
 
 ## Code standards
 
+### Comments and Documentation
+
+- Comment intent, not mechanics. Explain why a non-obvious decision or constraint exists; do not restate what the code already expresses.
+- Keep comments short, specific, and close to the code they explain. Prefer clearer names and structure over explanatory comments.
+- Treat stale comments as bugs: update or remove them whenever the related code changes.
+- Every exported function in `db/` and `src/lib/` must have TSDoc/JSDoc describing its purpose, parameters, and return value. Document the injectable `db` parameter explicitly for data-access helpers.
+- Every reusable `.astro` component must document its `Props` interface so its public contract is clear.
+
 ### Required Before Each Commit
 
 #### Testing guidelines
@@ -30,12 +38,13 @@ This is a crowdfunding platform for games with a developer theme. The applicatio
 
 - When updating the database schema, generate and commit the drizzle-kit migration (`npm run db:generate`)
 - When adding new functionality, make sure you update the README
-- Make sure all guidance in the Copilot Instructions file is updated with any relevant changes, including to project structure and scripts, and programming guidance
+- Make sure all guidance in the Copilot Instructions file is updated with any relevant changes, including project structure, scripts, comments, documentation, and programming guidance.
 
 ### Code formatting requirements
 
-- Use TypeScript with explicit types for function parameters and return values, especially in the data layer (`db/`, `src/lib/`)
-- Frontend code (TypeScript, Astro) must pass ESLint checks (`npm run lint`)
+- Use TypeScript with explicit types for function parameters and return values, especially in the data layer (`db/`, `src/lib/`).
+- Use single quotes, semicolons, four-space indentation, and trailing commas in multiline TypeScript. Keep imports and type annotations readable; do not use formatter overrides to bypass the shared style.
+- Frontend code (TypeScript, Astro) must pass ESLint checks (`npm run lint`). ESLint enforces the repository's semicolon, quote, comma, spacing, and final-newline rules; four-space indentation and documentation requirements are reviewed in code review.
 
 ### Data Layer Patterns (Drizzle + Node SQLite)
 
@@ -63,7 +72,7 @@ This is a crowdfunding platform for games with a developer theme. The applicatio
 
 - Follow good security practices
 - Make sure to explicitly set the workflow permissions
-- Add comments to document what tasks are being performed
+- Add workflow comments only when they explain why a task or permission is required; do not narrate the steps the workflow syntax already makes clear.
 
 ## Scripts
 
