@@ -24,6 +24,27 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test('should filter games by category and publisher', async ({ page }) => {
+    await page.goto('/');
+    const allCards = page.getByTestId('game-card');
+    await expect(allCards.first()).toBeVisible();
+
+    const categoryFilter = page.locator('[data-filter-category]').first();
+    const categoryId = await categoryFilter.inputValue();
+    const publisherValue = await allCards.first().getAttribute('data-publisher-id');
+    const publisherFilter = page.getByTestId('publisher-filter');
+
+    await categoryFilter.check();
+    await publisherFilter.selectOption(publisherValue ?? '');
+
+    const visibleCards = page.locator('[data-testid="game-card"]:visible');
+    await expect(visibleCards.first()).toBeVisible();
+    for (const card of await visibleCards.all()) {
+      await expect(card).toHaveAttribute('data-category-id', categoryId);
+      await expect(card).toHaveAttribute('data-publisher-id', publisherValue ?? '');
+    }
+  });
+
   test('should navigate to correct game details page when clicking on a game', async ({ page }) => {
     let gameId: string | null;
     let gameTitle: string | null;
