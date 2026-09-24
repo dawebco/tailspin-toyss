@@ -20,6 +20,13 @@ Refer to technology-specific instruction files:
 
 ## Core Principles
 
+### Comments and Documentation
+
+- Explain why code exists, not what a nearby line already says. Comments are for intent, constraints, and non-obvious decisions.
+- Prefer expressive names and simple structure over comments that narrate mechanics.
+- Keep comments accurate and concise; update or delete them when the related behavior changes.
+- Follow the data-layer TSDoc rules in [`drizzle.instructions.md`](drizzle.instructions.md) and the Astro `Props` documentation rules in [`astro.instructions.md`](astro.instructions.md).
+
 ### Testability
 
 - Every interactive element MUST include a `data-testid` attribute
