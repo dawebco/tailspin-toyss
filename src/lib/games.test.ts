@@ -45,6 +45,56 @@ describe('games data-access helpers', () => {
         expect(all[0].publisher).toEqual({ id: expect.any(Number), name: 'Pub One' });
     });
 
+    it('filters games by category and publisher together', async () => {
+        const [strategy] = await db
+            .insert(categories)
+            .values({ name: 'Strategy', description: 'strategy games' })
+            .returning({ id: categories.id });
+        const [puzzle] = await db
+            .insert(categories)
+            .values({ name: 'Puzzle', description: 'puzzle games' })
+            .returning({ id: categories.id });
+        const [pubOne] = await db
+            .insert(publishers)
+            .values({ name: 'Pub One', description: 'first publisher' })
+            .returning({ id: publishers.id });
+        const [pubTwo] = await db
+            .insert(publishers)
+            .values({ name: 'Pub Two', description: 'second publisher' })
+            .returning({ id: publishers.id });
+
+        await db.insert(games).values([
+            {
+                title: 'Strategy One',
+                description: 'Description',
+                starRating: 4.2,
+                categoryId: strategy.id,
+                publisherId: pubOne.id,
+            },
+            {
+                title: 'Strategy Two',
+                description: 'Description',
+                starRating: 4.2,
+                categoryId: strategy.id,
+                publisherId: pubTwo.id,
+            },
+            {
+                title: 'Puzzle One',
+                description: 'Description',
+                starRating: 4.2,
+                categoryId: puzzle.id,
+                publisherId: pubOne.id,
+            },
+        ]);
+
+        const filtered = await getAllGames(db, {
+            categoryIds: [strategy.id],
+            publisherId: pubOne.id,
+        });
+
+        expect(filtered.map((game) => game.title)).toEqual(['Strategy One']);
+    });
+
     it('returns all game ids ordered by title', async () => {
         await seedGames(db, 3);
         const ids = await getAllGameIds(db);

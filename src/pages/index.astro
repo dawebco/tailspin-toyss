@@ -9,6 +9,16 @@ import { getAllGames } from '../lib/games';
 export const prerender = true;
 
 const games = await getAllGames(getDatabase());
+const categories = [...new Map(
+  games
+    .filter((game) => game.category)
+    .map((game) => [game.category!.id, game.category!]),
+).values()].sort((a, b) => a.name.localeCompare(b.name));
+const publishers = [...new Map(
+  games
+    .filter((game) => game.publisher)
+    .map((game) => [game.publisher!.id, game.publisher!]),
+).values()].sort((a, b) => a.name.localeCompare(b.name));
 ---
 
 <Layout title="Tailspin Toys - Crowdfunding your new favorite game!">
@@ -19,15 +29,93 @@ const games = await getAllGames(getDatabase());
     />
 
     <div>
-      <h2 class="text-2xl font-medium mb-6 text-slate-100">Featured Games</h2>
+      <div class="mb-6 flex flex-col gap-4">
+        <h2 class="text-2xl font-medium text-slate-100">Featured Games</h2>
+
+        {games.length > 0 && (
+          <form class="rounded-xl border border-slate-700 bg-slate-800/60 p-4" data-testid="game-filters">
+            <fieldset>
+              <legend class="mb-3 text-sm font-semibold text-slate-200">Filter by category</legend>
+              <div class="flex flex-wrap gap-3">
+                {categories.map((category) => (
+                  <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+                    <input
+                      type="checkbox"
+                      value={category.id}
+                      class="h-4 w-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-2 focus:ring-blue-500"
+                      data-testid={`category-filter-${category.id}`}
+                      data-filter-category
+                    />
+                    <span>{category.name}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <div class="mt-4">
+              <label for="publisher-filter" class="mb-2 block text-sm font-semibold text-slate-200">Filter by publisher</label>
+              <select
+                id="publisher-filter"
+                class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:max-w-sm"
+                data-testid="publisher-filter"
+              >
+                <option value="">All publishers</option>
+                {publishers.map((publisher) => <option value={publisher.id}>{publisher.name}</option>)}
+              </select>
+            </div>
+
+            <button
+              type="reset"
+              class="mt-4 rounded-lg border border-slate-600 px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              data-testid="clear-filters"
+            >
+              Clear filters
+            </button>
+          </form>
+        )}
+      </div>
 
       {games.length === 0 ? (
         <EmptyState text="No games available at the moment." />
       ) : (
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="games-grid">
+        <>
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" data-testid="games-grid">
           {games.map((game) => <GameCard game={game} />)}
-        </div>
+          </div>
+          <div class="hidden" data-testid="filtered-empty-state">
+            <EmptyState text="No games match the selected filters." />
+          </div>
+        </>
       )}
     </div>
   </div>
 </Layout>
+
+<script>
+  const filterForm = document.querySelector<HTMLFormElement>('[data-testid="game-filters"]');
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-testid="game-card"]')];
+  const grid = document.querySelector<HTMLElement>('[data-testid="games-grid"]');
+  const emptyState = document.querySelector<HTMLElement>('[data-testid="filtered-empty-state"]');
+
+  const applyFilters = () => {
+    const selectedCategories = new Set(
+      [...document.querySelectorAll<HTMLInputElement>('[data-filter-category]:checked')].map((input) => input.value),
+    );
+    const publisher = document.querySelector<HTMLSelectElement>('[data-testid="publisher-filter"]')?.value ?? '';
+    let visibleCount = 0;
+
+    cards.forEach((card) => {
+      const categoryMatches = selectedCategories.size === 0 || selectedCategories.has(card.dataset.categoryId ?? '');
+      const publisherMatches = publisher === '' || publisher === card.dataset.publisherId;
+      const visible = categoryMatches && publisherMatches;
+      card.hidden = !visible;
+      visibleCount += visible ? 1 : 0;
+    });
+
+    grid?.classList.toggle('hidden', visibleCount === 0);
+    emptyState?.classList.toggle('hidden', visibleCount !== 0);
+  };
+
+  filterForm?.addEventListener('change', applyFilters);
+  filterForm?.addEventListener('reset', () => requestAnimationFrame(applyFilters));
+</script>
